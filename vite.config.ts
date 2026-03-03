@@ -7,6 +7,9 @@ export default defineConfig(({ mode }) => ({
   // For GitHub Pages: set base to your repo name, e.g. "/nome-do-repo/"
   // Leave as "/" if deploying to a custom domain or root
   base: "/",
+  build: {
+    outDir: "docs",
+  },
   server: {
     host: "::",
     port: 8080,
