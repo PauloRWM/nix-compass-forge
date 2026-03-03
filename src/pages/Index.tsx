@@ -717,34 +717,31 @@ const CadastroFlow = () => {
         </div>
 
         {/* Flow steps */}
-        <div className="relative">
-          {/* Connecting line */}
-          <div className="hidden md:block absolute top-[3.25rem] left-[12.5%] right-[12.5%] h-0.5 bg-gradient-to-r from-nix-orange via-nix-purple via-50% to-accent z-0" />
-
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
-            {[
-              { step: 1, title: "Preenchimento", desc: "Usuário submete via formulário público", icon: FileText, bg: "bg-gradient-to-br from-nix-orange to-nix-orange/70", ring: "ring-nix-orange/20" },
-              { step: 2, title: "Curadoria", desc: "Dados entram em revisão interna da Nix", icon: Eye, bg: "bg-gradient-to-br from-nix-purple to-nix-purple/70", ring: "ring-nix-purple/20" },
-              { step: 3, title: "Aprovação", desc: "Equipe revisa, padroniza e valida", icon: UserCheck, bg: "bg-gradient-to-br from-nix-teal to-nix-teal/70", ring: "ring-nix-teal/20" },
-              { step: 4, title: "Publicação", desc: "Registro publicado e visível no sistema", icon: CheckCircle2, bg: "bg-gradient-to-br from-accent to-accent/70", ring: "ring-accent/20" },
-            ].map((s) => (
-              <div key={s.step} className="relative flex flex-col items-center text-center group">
-                {/* Step number circle with icon */}
-                <div className={`relative z-10 w-16 h-16 rounded-full ${s.bg} flex items-center justify-center shadow-lg ring-4 ${s.ring} ring-offset-2 ring-offset-background group-hover:scale-110 transition-transform duration-300`}>
-                  <s.icon className="h-6 w-6 text-white" />
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {[
+            { step: 1, title: "Preenchimento", desc: "Usuário submete via formulário público", icon: FileText, color: "text-nix-orange", bg: "bg-nix-orange/10", border: "border-nix-orange/20" },
+            { step: 2, title: "Curadoria", desc: "Dados entram em revisão interna da Nix", icon: Eye, color: "text-nix-purple", bg: "bg-nix-purple/10", border: "border-nix-purple/20" },
+            { step: 3, title: "Aprovação", desc: "Equipe revisa, padroniza e valida", icon: UserCheck, color: "text-nix-teal", bg: "bg-nix-teal/10", border: "border-nix-teal/20" },
+            { step: 4, title: "Publicação", desc: "Registro publicado e visível no sistema", icon: CheckCircle2, color: "text-accent", bg: "bg-accent/10", border: "border-accent/20" },
+          ].map((s, i) => (
+            <div key={s.step} className="flex items-start gap-0">
+              <div className={`flex-1 rounded-2xl border ${s.border} bg-card p-5 text-center space-y-3 hover:shadow-md transition-all`}>
+                <div className={`w-12 h-12 rounded-xl ${s.bg} ${s.color} flex items-center justify-center mx-auto`}>
+                  <s.icon className="h-5 w-5" />
                 </div>
-                {/* Step number badge */}
-                <div className="absolute -top-1 -right-1 md:right-auto md:-top-1.5 md:left-[calc(50%+12px)] z-20 w-6 h-6 rounded-full bg-card border-2 border-border flex items-center justify-center">
-                  <span className="text-[10px] font-display font-bold">{s.step}</span>
-                </div>
-                {/* Text */}
-                <div className="mt-4 space-y-1">
-                  <h5 className="font-display font-bold text-sm">{s.title}</h5>
-                  <p className="text-xs text-muted-foreground leading-relaxed max-w-[160px] mx-auto">{s.desc}</p>
+                <div>
+                  <span className={`text-[10px] font-display font-bold ${s.color}`}>{s.step}</span>
+                  <h5 className="font-display font-semibold text-sm">{s.title}</h5>
+                  <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{s.desc}</p>
                 </div>
               </div>
-            ))}
-          </div>
+              {i < 3 && (
+                <div className="hidden md:flex items-center self-center -mx-2 z-10">
+                  <ChevronRight className="h-4 w-4 text-muted-foreground/40" />
+                </div>
+              )}
+            </div>
+          ))}
         </div>
 
         {/* Interactive form */}
