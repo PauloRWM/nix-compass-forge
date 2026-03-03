@@ -549,111 +549,191 @@ const MapeamentosLanding = () => {
 };
 
 /* ─── SEÇÃO 3: FILTROS DO MAPEAMENTO ─── */
-const MapeamentoFilters = () => (
-  <Section id="consulta">
-    <div className="space-y-8">
-      <div>
-        <div className="flex items-center gap-3 mb-2">
-          <span className="w-1.5 h-8 rounded-full bg-nix-purple" />
-          <h2 className="text-2xl font-display font-bold">Consulta — Territórios Negros Urbanos</h2>
-        </div>
-        <p className="text-muted-foreground ml-5">Filtros e busca na base de dados</p>
-      </div>
+/* ─── DADOS DA CONSULTA ─── */
+const consultaRecords = [
+  { name: "Quilombo da Saúde", city: "São Paulo", state: "SP", type: "Quilombo Urbano", status: "Publicado" as const },
+  { name: "Terreiro Casa Branca", city: "Salvador", state: "BA", type: "Terreiro", status: "Publicado" as const },
+  { name: "Memorial Zumbi", city: "Rio de Janeiro", state: "RJ", type: "Memorial", status: "Em revisão" as const },
+  { name: "Feira do Bixiga", city: "São Paulo", state: "SP", type: "Feira", status: "Publicado" as const },
+  { name: "Escola de Samba Vai-Vai", city: "São Paulo", state: "SP", type: "Escola de Samba", status: "Publicado" as const },
+  { name: "Museu Afro Brasil", city: "São Paulo", state: "SP", type: "Museu", status: "Publicado" as const },
+  { name: "Quilombo do Grotão", city: "Belo Horizonte", state: "MG", type: "Quilombo Urbano", status: "Pendente" as const },
+  { name: "Terreiro Ilê Axé", city: "Salvador", state: "BA", type: "Terreiro", status: "Em revisão" as const },
+];
 
-      <div className="rounded-2xl border border-border bg-card overflow-hidden shadow-sm">
-        <div className="flex flex-col md:flex-row">
-          {/* Sidebar */}
-          <div className="w-full md:w-72 border-b md:border-b-0 md:border-r border-border p-5 space-y-5 bg-muted/20">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <input className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-card border border-border text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-nix-purple/30" placeholder="Buscar..." />
-            </div>
-            <div>
-              <h4 className="text-xs font-display font-semibold uppercase tracking-wider text-muted-foreground mb-3">Cidade</h4>
-              <div className="space-y-1.5">
-                {["São Paulo (78)", "Rio de Janeiro (32)", "Salvador (18)", "Belo Horizonte (14)"].map(c => (
-                  <label key={c} className="flex items-center gap-2.5 p-1.5 rounded-md hover:bg-muted cursor-pointer text-sm"><Checkbox />{c}</label>
-                ))}
-              </div>
-            </div>
-            <Separator />
-            <div>
-              <h4 className="text-xs font-display font-semibold uppercase tracking-wider text-muted-foreground mb-3">Tipo</h4>
-              <div className="flex flex-wrap gap-1.5">
-                {["Quilombo", "Terreiro", "Escola de Samba", "Museu", "Memorial", "Feira"].map(t => (
-                  <span key={t} className="px-2.5 py-1 rounded-full text-[11px] font-medium border border-border bg-card hover:bg-nix-purple hover:text-nix-purple-foreground cursor-pointer transition-colors">{t}</span>
-                ))}
-              </div>
-            </div>
-            <Separator />
-            <div>
-              <h4 className="text-xs font-display font-semibold uppercase tracking-wider text-muted-foreground mb-3">Status</h4>
-              <div className="space-y-1.5">
-                {[{ l: "Publicado", dot: "bg-accent" }, { l: "Em revisão", dot: "bg-secondary" }, { l: "Pendente", dot: "bg-muted-foreground" }].map(s => (
-                  <label key={s.l} className="flex items-center gap-2.5 p-1.5 rounded-md hover:bg-muted cursor-pointer text-sm">
-                    <Checkbox /><span className={`w-2 h-2 rounded-full ${s.dot}`} />{s.l}
-                  </label>
-                ))}
-              </div>
-            </div>
-            <div className="flex gap-2">
-              <Button size="sm" className="flex-1">Filtrar</Button>
-              <Button size="sm" variant="outline" className="gap-1"><Download className="h-3 w-3" /> Exportar</Button>
-            </div>
+const consultaCities = ["São Paulo", "Rio de Janeiro", "Salvador", "Belo Horizonte"];
+const consultaTypes = ["Quilombo Urbano", "Terreiro", "Escola de Samba", "Museu", "Memorial", "Feira"];
+const consultaStatuses = ["Publicado", "Em revisão", "Pendente"] as const;
+
+const MapeamentoFilters = () => {
+  const [search, setSearch] = useState("");
+  const [selectedCities, setSelectedCities] = useState<string[]>([]);
+  const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
+  const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+
+  const toggleFilter = (arr: string[], val: string, setter: (v: string[]) => void) => {
+    setter(arr.includes(val) ? arr.filter(v => v !== val) : [...arr, val]);
+  };
+
+  const clearAll = () => { setSelectedCities([]); setSelectedTypes([]); setSelectedStatuses([]); setSearch(""); };
+
+  const activeFilters = [...selectedCities, ...selectedTypes, ...selectedStatuses];
+
+  const filtered = consultaRecords.filter(r => {
+    if (search && !r.name.toLowerCase().includes(search.toLowerCase())) return false;
+    if (selectedCities.length && !selectedCities.includes(r.city)) return false;
+    if (selectedTypes.length && !selectedTypes.includes(r.type)) return false;
+    if (selectedStatuses.length && !selectedStatuses.includes(r.status)) return false;
+    return true;
+  });
+
+  const statusDot: Record<string, string> = { "Publicado": "bg-accent", "Em revisão": "bg-secondary", "Pendente": "bg-muted-foreground" };
+
+  return (
+    <Section id="consulta">
+      <div className="space-y-8">
+        <div>
+          <div className="flex items-center gap-3 mb-2">
+            <span className="w-1.5 h-8 rounded-full bg-nix-purple" />
+            <h2 className="text-2xl font-display font-bold">Consulta — Territórios Negros Urbanos</h2>
           </div>
+          <p className="text-muted-foreground ml-5">Filtros e busca na base de dados</p>
+        </div>
 
-          {/* Results */}
-          <div className="flex-1 p-5 space-y-4">
-            <div className="flex items-center justify-between flex-wrap gap-2">
-              <div className="flex items-center gap-2 flex-wrap">
-                <Badge variant="secondary" className="gap-1 text-xs">São Paulo <X className="h-3 w-3" /></Badge>
-                <Badge variant="secondary" className="gap-1 text-xs">Quilombo <X className="h-3 w-3" /></Badge>
-                <button className="text-xs text-primary hover:underline">Limpar</button>
+        <div className="rounded-2xl border border-border bg-card overflow-hidden shadow-sm">
+          <div className="flex flex-col md:flex-row">
+            {/* Sidebar */}
+            <div className="w-full md:w-72 border-b md:border-b-0 md:border-r border-border p-5 space-y-5 bg-muted/20">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <input
+                  value={search}
+                  onChange={e => setSearch(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-card border border-border text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-nix-purple/30"
+                  placeholder="Buscar..."
+                />
               </div>
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-muted-foreground">142 resultados</span>
-                <div className="flex border border-border rounded-lg overflow-hidden">
-                  <button className="p-1.5 bg-primary text-primary-foreground"><Grid3X3 className="h-3.5 w-3.5" /></button>
-                  <button className="p-1.5 hover:bg-muted text-muted-foreground"><List className="h-3.5 w-3.5" /></button>
-                  <button className="p-1.5 hover:bg-muted text-muted-foreground"><MapPin className="h-3.5 w-3.5" /></button>
+              <div>
+                <h4 className="text-xs font-display font-semibold uppercase tracking-wider text-muted-foreground mb-3">Cidade</h4>
+                <div className="space-y-1.5">
+                  {consultaCities.map(c => {
+                    const count = consultaRecords.filter(r => r.city === c).length;
+                    return (
+                      <label key={c} className="flex items-center gap-2.5 p-1.5 rounded-md hover:bg-muted cursor-pointer text-sm" onClick={() => toggleFilter(selectedCities, c, setSelectedCities)}>
+                        <Checkbox checked={selectedCities.includes(c)} />{c} ({count})
+                      </label>
+                    );
+                  })}
                 </div>
               </div>
+              <Separator />
+              <div>
+                <h4 className="text-xs font-display font-semibold uppercase tracking-wider text-muted-foreground mb-3">Tipo</h4>
+                <div className="flex flex-wrap gap-1.5">
+                  {consultaTypes.map(t => (
+                    <span
+                      key={t}
+                      onClick={() => toggleFilter(selectedTypes, t, setSelectedTypes)}
+                      className={`px-2.5 py-1 rounded-full text-[11px] font-medium border cursor-pointer transition-colors ${selectedTypes.includes(t) ? "bg-nix-purple text-nix-purple-foreground border-nix-purple" : "border-border bg-card hover:bg-muted"}`}
+                    >{t}</span>
+                  ))}
+                </div>
+              </div>
+              <Separator />
+              <div>
+                <h4 className="text-xs font-display font-semibold uppercase tracking-wider text-muted-foreground mb-3">Status</h4>
+                <div className="space-y-1.5">
+                  {consultaStatuses.map(s => (
+                    <label key={s} className="flex items-center gap-2.5 p-1.5 rounded-md hover:bg-muted cursor-pointer text-sm" onClick={() => toggleFilter(selectedStatuses, s, setSelectedStatuses)}>
+                      <Checkbox checked={selectedStatuses.includes(s)} /><span className={`w-2 h-2 rounded-full ${statusDot[s]}`} />{s}
+                    </label>
+                  ))}
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <Button size="sm" variant="outline" className="flex-1" onClick={clearAll}>Limpar</Button>
+                <Button size="sm" variant="outline" className="gap-1"><Download className="h-3 w-3" /> Exportar</Button>
+              </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {[
-                { name: "Quilombo da Saúde", city: "São Paulo, SP", type: "Quilombo Urbano", status: "Publicado" },
-                { name: "Terreiro Casa Branca", city: "Salvador, BA", type: "Terreiro", status: "Publicado" },
-                { name: "Memorial Zumbi", city: "Rio de Janeiro, RJ", type: "Memorial", status: "Em revisão" },
-                { name: "Feira do Bixiga", city: "São Paulo, SP", type: "Feira", status: "Publicado" },
-              ].map(r => (
-                <div key={r.name} className="rounded-xl border border-border bg-card p-4 hover:shadow-lg transition-all hover:-translate-y-0.5 space-y-3">
-                  <div className="h-24 rounded-lg overflow-hidden">
-                    <img src={territoriosImg} alt={r.name} className="w-full h-full object-cover" />
-                  </div>
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <h5 className="font-display font-semibold text-sm">{r.name}</h5>
-                      <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5"><MapPin className="h-3 w-3" />{r.city}</p>
-                    </div>
-                    <Badge variant={r.status === "Publicado" ? "default" : "secondary"} className="text-[10px]">{r.status}</Badge>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-[11px] px-2 py-0.5 rounded-md bg-muted font-medium">{r.type}</span>
-                    <div className="flex gap-1">
-                      <button className="p-1.5 hover:bg-muted rounded-md"><Eye className="h-3.5 w-3.5 text-muted-foreground" /></button>
-                      <button className="p-1.5 hover:bg-muted rounded-md"><Share2 className="h-3.5 w-3.5 text-muted-foreground" /></button>
-                    </div>
+            {/* Results */}
+            <div className="flex-1 p-5 space-y-4">
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
+                  {activeFilters.map(f => (
+                    <Badge key={f} variant="secondary" className="gap-1 text-xs cursor-pointer" onClick={() => {
+                      setSelectedCities(prev => prev.filter(v => v !== f));
+                      setSelectedTypes(prev => prev.filter(v => v !== f));
+                      setSelectedStatuses(prev => prev.filter(v => v !== f));
+                    }}>
+                      {f} <X className="h-3 w-3" />
+                    </Badge>
+                  ))}
+                  {activeFilters.length > 0 && <button className="text-xs text-primary hover:underline" onClick={clearAll}>Limpar tudo</button>}
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground">{filtered.length} resultado{filtered.length !== 1 ? "s" : ""}</span>
+                  <div className="flex border border-border rounded-lg overflow-hidden">
+                    <button onClick={() => setViewMode("grid")} className={`p-1.5 ${viewMode === "grid" ? "bg-primary text-primary-foreground" : "hover:bg-muted text-muted-foreground"}`}><Grid3X3 className="h-3.5 w-3.5" /></button>
+                    <button onClick={() => setViewMode("list")} className={`p-1.5 ${viewMode === "list" ? "bg-primary text-primary-foreground" : "hover:bg-muted text-muted-foreground"}`}><List className="h-3.5 w-3.5" /></button>
                   </div>
                 </div>
-              ))}
+              </div>
+
+              {filtered.length === 0 ? (
+                <div className="rounded-xl border border-dashed border-border bg-muted/20 p-8 text-center">
+                  <Search className="h-6 w-6 text-muted-foreground/40 mx-auto mb-2" />
+                  <p className="text-sm text-muted-foreground">Nenhum registro encontrado com esses filtros</p>
+                </div>
+              ) : viewMode === "grid" ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {filtered.map(r => (
+                    <div key={r.name} className="rounded-xl border border-border bg-card p-4 hover:shadow-lg transition-all hover:-translate-y-0.5 space-y-3">
+                      <div className="h-24 rounded-lg overflow-hidden">
+                        <img src={territoriosImg} alt={r.name} className="w-full h-full object-cover" />
+                      </div>
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <h5 className="font-display font-semibold text-sm">{r.name}</h5>
+                          <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5"><MapPin className="h-3 w-3" />{r.city}, {r.state}</p>
+                        </div>
+                        <Badge variant={r.status === "Publicado" ? "default" : "secondary"} className="text-[10px]">{r.status}</Badge>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-[11px] px-2 py-0.5 rounded-md bg-muted font-medium">{r.type}</span>
+                        <div className="flex gap-1">
+                          <button className="p-1.5 hover:bg-muted rounded-md"><Eye className="h-3.5 w-3.5 text-muted-foreground" /></button>
+                          <button className="p-1.5 hover:bg-muted rounded-md"><Share2 className="h-3.5 w-3.5 text-muted-foreground" /></button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {filtered.map(r => (
+                    <div key={r.name} className="flex items-center gap-4 rounded-xl border border-border bg-card p-3 hover:shadow-md transition-all">
+                      <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
+                        <img src={territoriosImg} alt={r.name} className="w-full h-full object-cover" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h5 className="font-display font-semibold text-sm">{r.name}</h5>
+                        <p className="text-xs text-muted-foreground flex items-center gap-1"><MapPin className="h-3 w-3" />{r.city}, {r.state}</p>
+                      </div>
+                      <span className="text-[11px] px-2 py-0.5 rounded-md bg-muted font-medium hidden sm:block">{r.type}</span>
+                      <Badge variant={r.status === "Publicado" ? "default" : "secondary"} className="text-[10px] flex-shrink-0">{r.status}</Badge>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>
       </div>
-    </div>
-  </Section>
-);
+    </Section>
+  );
+};
 
 /* ─── SEÇÃO 4: FLUXO DE CADASTRO ─── */
 const initialForm = { nome: "", cidade: "", endereco: "", contato: "", descricao: "", mapeamento: "", categoria: "" };
@@ -768,12 +848,12 @@ const CadastroFlow = () => {
               {/* Header + progress */}
               <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
                 <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-nix-orange to-primary/80 flex items-center justify-center shadow-md">
-                    <FileText className="h-5 w-5 text-white" />
+                  <div className="w-12 h-12 rounded-2xl bg-primary flex items-center justify-center shadow-md">
+                    <span className="text-primary-foreground font-display font-bold text-lg">N</span>
                   </div>
                   <div className="space-y-1">
                     <h4 className="font-display font-bold text-lg">Formulário de Cadastro</h4>
-                    <p className="text-sm text-muted-foreground">Preencha os dados abaixo para submeter um novo registro</p>
+                    <p className="text-sm text-muted-foreground">Nix Diversidade — Submeta um novo registro ao mapeamento</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3 min-w-[140px]">
