@@ -5,7 +5,7 @@ import {
   CheckCircle2, FileText, BarChart3, UserCheck, Send, Users,
   Menu, X as XIcon, ArrowUp, ArrowLeft, Globe, Phone, Mail,
   Lock, Instagram, Calendar, Activity, CircleDot, MessageCircle,
-  Heart, ExternalLink
+  Heart, ExternalLink, ImagePlus, Upload
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -131,98 +131,141 @@ const Section = ({ id, children, accentColor = "bg-primary" }: { id: string; chi
   </section>
 );
 
-/* ─── SEÇÃO 1: CURSOS EAD ─── */
-const CursosSection = () => (
-  <Section id="cursos">
-    <div className="space-y-8">
-      <div>
-        <div className="flex items-center gap-3 mb-2">
-          <span className="w-1.5 h-8 rounded-full bg-primary" />
-          <h2 className="text-2xl font-display font-bold">Área de Cursos EAD</h2>
-        </div>
-        <p className="text-muted-foreground ml-5">Cursos, palestras e masterclasses com certificação</p>
-      </div>
+/* ─── DADOS DOS CURSOS ─── */
+const allCourses = [
+  { title: "Territórios Negros: História e Resistência", type: "Curso", duration: "12h", durationH: 12, modules: 8, cert: true, img: cursoTerritoriosImg, rating: 4.8, students: 234, tags: ["Cultura Negra", "Territórios Urbanos"] },
+  { title: "Gastronomia Afrodiaspórica", type: "Masterclass", duration: "3h", durationH: 3, modules: 4, cert: true, img: cursoGastronomiaImg, rating: 4.5, students: 189, tags: ["Gastronomia de Rua", "Cultura Negra"] },
+  { title: "Direitos e Visibilidade LGBTQIA+", type: "Palestra", duration: "1h30", durationH: 1.5, modules: 1, cert: false, img: cursoDireitosImg, rating: 4.9, students: 412, tags: ["Direitos LGBTQIA+"] },
+  { title: "Cartografia Social e Mapeamento Participativo", type: "Curso", duration: "8h", durationH: 8, modules: 6, cert: true, img: heroImg, rating: 4.7, students: 156, tags: ["Territórios Urbanos"] },
+  { title: "Culinária de Rua: Saberes e Sabores", type: "Masterclass", duration: "2h", durationH: 2, modules: 3, cert: false, img: cursoGastronomiaImg, rating: 4.3, students: 98, tags: ["Gastronomia de Rua"] },
+  { title: "Saúde e Bem-Estar LGBTQIA+", type: "Palestra", duration: "1h", durationH: 1, modules: 1, cert: false, img: cursoDireitosImg, rating: 4.6, students: 275, tags: ["Direitos LGBTQIA+"] },
+];
 
-      {/* Hero search */}
-      <div className="relative rounded-2xl overflow-hidden border border-border">
-        <img src={heroImg} alt="Banner cursos" className="w-full h-48 object-cover" />
-        <div className="absolute inset-0 bg-gradient-to-t from-foreground/80 via-foreground/40 to-transparent" />
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="max-w-2xl w-full px-6 text-center space-y-4">
-            <h3 className="font-display text-2xl font-bold text-card">O que você quer aprender?</h3>
-            <div className="relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-              <input className="w-full pl-12 pr-4 py-4 rounded-xl bg-card/95 backdrop-blur border border-border shadow-lg text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30" placeholder="Buscar cursos, palestras, masterclasses..." />
-            </div>
-            <div className="flex items-center justify-center gap-2 flex-wrap">
-              {["Cultura Negra", "Gastronomia de Rua", "Direitos LGBTQIA+", "Territórios Urbanos"].map(t => (
-                <span key={t} className="px-3 py-1 rounded-full text-xs font-medium bg-card/80 backdrop-blur border border-card/50 text-card-foreground hover:bg-primary hover:text-primary-foreground cursor-pointer transition-colors">{t}</span>
-              ))}
+const CursosSection = () => {
+  const [search, setSearch] = useState("");
+  const [tab, setTab] = useState("todos");
+  const [certOnly, setCertOnly] = useState(false);
+  const [selectedTag, setSelectedTag] = useState<string | null>(null);
+
+  const filtered = allCourses.filter(c => {
+    if (search && !c.title.toLowerCase().includes(search.toLowerCase())) return false;
+    if (tab !== "todos" && c.type.toLowerCase() !== tab) return false;
+    if (certOnly && !c.cert) return false;
+    if (selectedTag && !c.tags.includes(selectedTag)) return false;
+    return true;
+  });
+
+  return (
+    <Section id="cursos">
+      <div className="space-y-8">
+        <div>
+          <div className="flex items-center gap-3 mb-2">
+            <span className="w-1.5 h-8 rounded-full bg-primary" />
+            <h2 className="text-2xl font-display font-bold">Área de Cursos EAD</h2>
+          </div>
+          <p className="text-muted-foreground ml-5">Cursos, palestras e masterclasses com certificação</p>
+        </div>
+
+        {/* Hero search */}
+        <div className="relative rounded-2xl overflow-hidden border border-border">
+          <img src={heroImg} alt="Banner cursos" className="w-full h-48 object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-t from-foreground/80 via-foreground/40 to-transparent" />
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="max-w-2xl w-full px-6 text-center space-y-4">
+              <h3 className="font-display text-2xl font-bold text-card">O que você quer aprender?</h3>
+              <div className="relative">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <input
+                  value={search}
+                  onChange={e => setSearch(e.target.value)}
+                  className="w-full pl-12 pr-4 py-4 rounded-xl bg-card/95 backdrop-blur border border-border shadow-lg text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
+                  placeholder="Buscar cursos, palestras, masterclasses..."
+                />
+              </div>
+              <div className="flex items-center justify-center gap-2 flex-wrap">
+                {["Cultura Negra", "Gastronomia de Rua", "Direitos LGBTQIA+", "Territórios Urbanos"].map(t => (
+                  <span
+                    key={t}
+                    onClick={() => setSelectedTag(selectedTag === t ? null : t)}
+                    className={`px-3 py-1 rounded-full text-xs font-medium backdrop-blur border cursor-pointer transition-colors ${selectedTag === t ? "bg-primary text-primary-foreground border-primary" : "bg-card/80 border-card/50 text-card-foreground hover:bg-primary hover:text-primary-foreground"}`}
+                  >{t}</span>
+                ))}
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Filters */}
-      <div className="flex gap-3 items-center flex-wrap">
-        <Tabs defaultValue="todos">
-          <TabsList>
-            <TabsTrigger value="todos">Todos</TabsTrigger>
-            <TabsTrigger value="cursos">Cursos</TabsTrigger>
-            <TabsTrigger value="palestras">Palestras</TabsTrigger>
-            <TabsTrigger value="masterclass">Masterclasses</TabsTrigger>
-          </TabsList>
-        </Tabs>
-        <div className="flex-1" />
-        {[{ l: "Nível", icon: BarChart3 }, { l: "Duração", icon: Clock }, { l: "Certificação", icon: Award }].map(f => (
-          <button key={f.l} className="flex items-center gap-2 px-3 py-2 rounded-lg border border-border bg-card hover:bg-muted text-xs font-medium transition-colors">
-            <f.icon className="h-3.5 w-3.5 text-muted-foreground" /> {f.l} <ChevronDown className="h-3 w-3 text-muted-foreground" />
+        {/* Filters */}
+        <div className="flex gap-3 items-center flex-wrap">
+          <Tabs value={tab} onValueChange={setTab}>
+            <TabsList>
+              <TabsTrigger value="todos">Todos</TabsTrigger>
+              <TabsTrigger value="curso">Cursos</TabsTrigger>
+              <TabsTrigger value="palestra">Palestras</TabsTrigger>
+              <TabsTrigger value="masterclass">Masterclasses</TabsTrigger>
+            </TabsList>
+          </Tabs>
+          <div className="flex-1" />
+          <button
+            onClick={() => setCertOnly(!certOnly)}
+            className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-xs font-medium transition-colors ${certOnly ? "bg-primary text-primary-foreground border-primary" : "border-border bg-card hover:bg-muted"}`}
+          >
+            <Award className="h-3.5 w-3.5" /> Com certificado
           </button>
-        ))}
-      </div>
+          {(search || tab !== "todos" || certOnly || selectedTag) && (
+            <button onClick={() => { setSearch(""); setTab("todos"); setCertOnly(false); setSelectedTag(null); }} className="text-xs text-primary hover:underline">Limpar filtros</button>
+          )}
+        </div>
 
-      {/* Course cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {[
-          { title: "Territórios Negros: História e Resistência", type: "Curso", duration: "12h", modules: 8, cert: true, img: cursoTerritoriosImg, rating: 4.8, students: 234 },
-          { title: "Gastronomia Afrodiaspórica", type: "Masterclass", duration: "3h", modules: 4, cert: true, img: cursoGastronomiaImg, rating: 4.5, students: 189 },
-          { title: "Direitos e Visibilidade LGBTQIA+", type: "Palestra", duration: "1h30", modules: 1, cert: false, img: cursoDireitosImg, rating: 4.9, students: 412 },
-        ].map(c => (
-          <div key={c.title} className="rounded-2xl border border-border bg-card overflow-hidden hover:shadow-xl transition-all group hover:-translate-y-1">
-            <div className="relative h-44 overflow-hidden">
-              <img src={c.img} alt={c.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-              <div className="absolute inset-0 bg-gradient-to-t from-foreground/60 to-transparent" />
-              <Badge className="absolute top-3 left-3 text-[10px] bg-card/90 backdrop-blur text-card-foreground border-0">{c.type}</Badge>
-              <div className="absolute bottom-3 left-3 right-3 flex items-end justify-between">
-                <div className="flex items-center gap-2 text-[11px] text-card font-medium">
-                  <span className="flex items-center gap-1"><Users className="h-3 w-3" /> {c.students} alunos</span>
-                </div>
-                <div className="w-10 h-10 rounded-full bg-primary/90 backdrop-blur flex items-center justify-center group-hover:scale-110 transition-transform cursor-pointer">
-                  <Play className="h-4 w-4 text-primary-foreground ml-0.5" />
-                </div>
-              </div>
-            </div>
-            <div className="p-5 space-y-3">
-              <h4 className="font-display font-semibold text-sm leading-tight line-clamp-2">{c.title}</h4>
-              <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> {c.duration}</span>
-                <span className="flex items-center gap-1"><BookOpen className="h-3 w-3" /> {c.modules} módulos</span>
-                {c.cert && <span className="flex items-center gap-1 text-accent"><Award className="h-3 w-3" /> Certificado</span>}
-              </div>
-              <div className="flex items-center justify-between pt-3 border-t border-border">
-                <div className="flex items-center gap-1">
-                  {[1,2,3,4,5].map(i => <Star key={i} className={`h-3.5 w-3.5 ${i <= Math.floor(c.rating) ? "fill-secondary text-secondary" : "text-border"}`} />)}
-                  <span className="text-xs text-muted-foreground ml-1.5 font-medium">{c.rating}</span>
-                </div>
-                <Button size="sm" variant="ghost" className="text-xs h-8 gap-1.5 font-semibold"><Play className="h-3 w-3" /> Acessar</Button>
-              </div>
-            </div>
+        {/* Results count */}
+        <p className="text-sm text-muted-foreground">{filtered.length} resultado{filtered.length !== 1 ? "s" : ""}</p>
+
+        {/* Course cards */}
+        {filtered.length === 0 ? (
+          <div className="rounded-xl border border-dashed border-border bg-muted/20 p-8 text-center">
+            <Search className="h-6 w-6 text-muted-foreground/40 mx-auto mb-2" />
+            <p className="text-sm text-muted-foreground">Nenhum curso encontrado com esses filtros</p>
           </div>
-        ))}
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filtered.map(c => (
+              <div key={c.title} className="rounded-2xl border border-border bg-card overflow-hidden hover:shadow-xl transition-all group hover:-translate-y-1">
+                <div className="relative h-44 overflow-hidden">
+                  <img src={c.img} alt={c.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-foreground/60 to-transparent" />
+                  <Badge className="absolute top-3 left-3 text-[10px] bg-card/90 backdrop-blur text-card-foreground border-0">{c.type}</Badge>
+                  <div className="absolute bottom-3 left-3 right-3 flex items-end justify-between">
+                    <div className="flex items-center gap-2 text-[11px] text-card font-medium">
+                      <span className="flex items-center gap-1"><Users className="h-3 w-3" /> {c.students} alunos</span>
+                    </div>
+                    <div className="w-10 h-10 rounded-full bg-primary/90 backdrop-blur flex items-center justify-center group-hover:scale-110 transition-transform cursor-pointer">
+                      <Play className="h-4 w-4 text-primary-foreground ml-0.5" />
+                    </div>
+                  </div>
+                </div>
+                <div className="p-5 space-y-3">
+                  <h4 className="font-display font-semibold text-sm leading-tight line-clamp-2">{c.title}</h4>
+                  <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                    <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> {c.duration}</span>
+                    <span className="flex items-center gap-1"><BookOpen className="h-3 w-3" /> {c.modules} módulos</span>
+                    {c.cert && <span className="flex items-center gap-1 text-accent"><Award className="h-3 w-3" /> Certificado</span>}
+                  </div>
+                  <div className="flex items-center justify-between pt-3 border-t border-border">
+                    <div className="flex items-center gap-1">
+                      {[1,2,3,4,5].map(i => <Star key={i} className={`h-3.5 w-3.5 ${i <= Math.floor(c.rating) ? "fill-secondary text-secondary" : "text-border"}`} />)}
+                      <span className="text-xs text-muted-foreground ml-1.5 font-medium">{c.rating}</span>
+                    </div>
+                    <Button size="sm" variant="ghost" className="text-xs h-8 gap-1.5 font-semibold"><Play className="h-3 w-3" /> Acessar</Button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
-    </div>
-  </Section>
-);
+    </Section>
+  );
+};
 
 /* ─── SEÇÃO 2: MAPEAMENTOS ─── */
 type MappingId = "territorios" | "comida" | "coletivos" | "eventos";
@@ -905,6 +948,23 @@ const CadastroFlow = () => {
                     placeholder="Descreva o local, coletivo ou evento..."
                   />
                   {errors.descricao && <p className="text-xs text-destructive">{errors.descricao}</p>}
+                </div>
+
+                {/* Logo upload */}
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Logo / Imagem</label>
+                  <label className="flex flex-col items-center justify-center gap-3 p-6 rounded-xl border-2 border-dashed border-border bg-background/40 hover:border-primary/40 hover:bg-primary/5 cursor-pointer transition-all group">
+                    <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center group-hover:bg-primary/10 transition-colors">
+                      <ImagePlus className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
+                    </div>
+                    <div className="text-center">
+                      <p className="text-sm font-medium text-muted-foreground group-hover:text-foreground transition-colors">
+                        Clique para enviar ou arraste o arquivo
+                      </p>
+                      <p className="text-xs text-muted-foreground/60 mt-1">PNG, JPG ou SVG (máx. 2MB)</p>
+                    </div>
+                    <input type="file" accept="image/*" className="hidden" />
+                  </label>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
